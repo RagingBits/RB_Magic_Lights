@@ -1,4 +1,0 @@
-IO5 		- Addressable RGB driver reset.
-IO17 (UART2_TX)	- Addressable RGB driver RX.
-IO16 (UART2_RX)	- Addressable RGB driver TX.
-EN		- 100Kohm RES to VCC.
