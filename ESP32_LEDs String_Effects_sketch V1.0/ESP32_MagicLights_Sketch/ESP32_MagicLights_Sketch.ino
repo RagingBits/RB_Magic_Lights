@@ -13,6 +13,11 @@
 pins defined at 
 C:\Users\eng_m\Documents\ArduinoData\packages\esp32\hardware\esp32\1.0.6\variants\doitESP32devkitV1\
 
+
+ssid:
+Vodafone-A671CA
+46swA9EitFC
+192.168.1.91
 */
 
 #define MAX_LEDS_BUFFER_SIZE 900
@@ -168,12 +173,16 @@ void setup() {
   MAX_DATA_BUFFER1_SIZE = ESP.getMaxAllocHeap();
   led_buffer1 = (uint8_t*)malloc(MAX_DATA_BUFFER1_SIZE);
   //WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+  
   pinMode(LEDS_DRIVER_RST, OUTPUT);
-  pinMode(LED_CONNECTED, OUTPUT);
+  pinMode(LED_WIFI, OUTPUT);
+  pinMode(LED_WORK, OUTPUT);
+  pinMode(LED_ERROR, OUTPUT);  
   pinMode(ERASE_MEM_REQUEST_PIN, INPUT_PULLUP);
-  pinMode(0, INPUT_PULLUP);
+  digitalWrite(LED_WORK,HIGH);
+  digitalWrite(LED_ERROR,HIGH);
+  digitalWrite(LED_WIFI,HIGH);
   digitalWrite(LEDS_DRIVER_RST,LOW);
-  digitalWrite(LED_CONNECTED,LOW);
   Serial.begin(115200);
   Serial2.begin(500000,SERIAL_8N1, RX2,TX2);
 
@@ -209,6 +218,8 @@ void setup() {
 
   
   Serial.println("Ready to work.");  
+   digitalWrite(LEDS_DRIVER_RST,HIGH);
+  
 }
 
 
@@ -594,13 +605,28 @@ void send_leds(void)
 uint8_t already_connected = 0;
 uint32_t connected_timeout = 6000;
 uint16_t save_new_pass = 800;
+uint8_t blink_counter = 0;
+
 void loop()
 {
   wl_status_t status = WL_IDLE_STATUS;
   
   char temp_ssid[SSID_MAX_LEN];
   char temp_pass[PASS_MAX_LEN];
-  delay(10);
+  delay(5);
+
+  blink_counter += 2;
+  if(0 == blink_counter)
+  {
+    if(digitalRead(LED_WORK) != 0)
+    {
+      digitalWrite(LED_WORK,LOW);
+    }
+    else
+    {
+      digitalWrite(LED_WORK,HIGH);
+    }
+  }
 
   if(digitalRead(ERASE_MEM_REQUEST_PIN) == 0)
   {
@@ -610,6 +636,7 @@ void loop()
       }
       else
       {
+        digitalWrite(LED_ERROR,LOW);
         save_new_pass = 800;
         Serial.print("PASS and SSID erase request... ");
         EEPROM.readBytes(SSID_ADDR,temp_ssid,SSID_MAX_LEN);
@@ -626,6 +653,7 @@ void loop()
         {
           Serial.println("Already cleared.");
         }
+        digitalWrite(LED_ERROR,HIGH);
       }
       
       
@@ -681,7 +709,7 @@ void loop()
   else
   if (1 == work_status)
   {
-    digitalWrite(LED_CONNECTED,LOW);
+    digitalWrite(LED_WIFI,HIGH);
     Serial.println("SSID:");
     Serial.println(ssid);
     Serial.println("Password:");
@@ -701,13 +729,28 @@ void loop()
         WiFi.begin(ssid, NULL);
       }
 
-      uint8_t temp_counter2 = 15;
+      uint8_t temp_counter2 = 200;
+ 
       while(temp_counter2-- > 0)
       {
         Serial.print(".");
-        delay(1000);
-        if(WiFi.status() == WL_CONNECTED)
+        delay(100);
+        
+ 
+        if(digitalRead(LED_WORK) != 0)
         {
+          digitalWrite(LED_WORK,LOW);
+          digitalWrite(LED_ERROR,HIGH);
+        }
+        else
+        {
+          digitalWrite(LED_WORK,HIGH);
+          digitalWrite(LED_ERROR,LOW);
+        }
+        
+        
+        if(WiFi.status() == WL_CONNECTED)
+        {          
           Serial.println(".");
           work_status = 2;          
           temp_counter = 0;
@@ -718,6 +761,7 @@ void loop()
 
     if(WiFi.status() != WL_CONNECTED)
     {
+      digitalWrite(LED_ERROR,LOW);
       //server.send(200, "text/html",end_webpage_error); 
       Serial.println(".");
       Serial.println("Connection error.");
@@ -736,12 +780,15 @@ void loop()
         */
         work_status = 3;
       }
+      //digitalWrite(LED_ERROR,HIGH);
     }
+
+    digitalWrite(LED_ERROR,HIGH);
   }
   else
   if (2 == work_status)
   {
-    digitalWrite(LED_CONNECTED,HIGH);
+    digitalWrite(LED_WIFI,LOW);
     
     EEPROM.readBytes(SSID_ADDR,temp_ssid,SSID_MAX_LEN);
     EEPROM.readBytes(PASS_ADDR,temp_pass,PASS_MAX_LEN);
@@ -805,7 +852,7 @@ void handle_NotFound() {
       Serial.print("Query on connection: ");
       if(WiFi.status() == WL_CONNECTED)
       {
-        already_connected = 1;
+        //already_connected = 1;
         Serial.println("IP webpage sent.");
         char data_to_send[500];
         sprintf(data_to_send, ready_webpage, WiFi.localIP()[0],WiFi.localIP()[1],WiFi.localIP()[2],WiFi.localIP()[3],max_mem_available);

@@ -23,28 +23,23 @@ static const uint8_t SCL = 22;
 
 static const uint8_t LEDS_DRIVER_RST = 5;
 static const uint8_t ERASE_MEM_REQUEST_PIN = 0;
-static const uint8_t LED_CONNECTED = 32;
+//static const uint8_t LED_CONNECTED = 32;
 //static const uint8_t LEDS_DATA_I2S = 5;
 
 //Local definitions
-static const uint8_t TX2 = 15;
+static const uint8_t TX2 = 17;
 static const uint8_t RX2 = 16;
-/* For Future use. */
+
 //static const uint8_t SS    = 4;
 //static const uint8_t MOSI  = 2;
 //static const uint8_t MISO  = 15;
-//static const uint8_t SCK   = 0;
-/* For Future use. */
+//static const uint8_t SCK   = 18;
+
 static const uint8_t LED_WORK = 23;
 static const uint8_t LED_WIFI = 22;
 static const uint8_t LED_ERROR = 21;
 
-/*
-static const uint8_t SS    = 5;
-static const uint8_t MOSI  = 23;
-static const uint8_t MISO  = 19;
-static const uint8_t SCK   = 18;
-*/
+
 static const uint8_t A0 = 36;
 static const uint8_t A3 = 39;
 static const uint8_t A4 = 32;
